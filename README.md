@@ -1,8 +1,6 @@
-# Extension of A3
+# The effects of data visualization on user perception of numerical data
 
-Website: https://sites.google.com/view/cs4804yakovenko-kittur-stjean/home
-
-Our website has our process book, visualization, screen-cast, and data.
+The [website](https://sites.google.com/view/cs4804yakovenko-kittur-stjean/home) contains a process book, visualization, screen-cast, and data.
 
 The visualizations used in our experiments were adapted from the ones we used in A3, which use d3. The experiments themselves were implemented with the SurveyJS library.
 
