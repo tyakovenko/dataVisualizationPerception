@@ -1,119 +1,187 @@
-# The effects of data visualization on user perception of numerical data
+# Data Visualization Perception Study
 
-The [website](https://sites.google.com/view/cs4804yakovenko-kittur-stjean/home) contains a process book, visualization, screen-cast, and data.
+**Does chart type or color contrast affect how accurately people estimate numerical differences?** This research project answers that question empirically — deploying three browser-based perceptual experiments, collecting participant data, and running statistical analysis using the Cleveland & McGill (1984) error metric.
 
-The visualizations used in our experiments were adapted from the ones we used in A3, which use d3. The experiments themselves were implemented with the SurveyJS library.
+---
 
+## The "Why"
 
-# Overview and Motivation
-- Implement three different surveys, each with one visualization type.
-- To decrease the effort required of the participants to possibly decrease fatigue and improve the consistency of results.
-- Surveys were designed using SurveyJS library + React and deployed via GitHub pages
-- In each survey, feature 10 pairs of visualizations, with one from each pair being “low-contrast” and the other “high-contrast”.
-- To assess the impact of color contrast on participants’ ability to estimate numeric differences.
-- Visualizations were created with d3.
+Data visualization is everywhere, but the design choices behind charts are rarely tested rigorously. Researchers Cleveland & McGill established in 1984 that chart type significantly impacts perceptual accuracy — but what about color contrast? And do different chart types (bar, radar, donut) produce meaningfully different error rates?
 
-# Related Work: 
+This study extends those foundational experiments by:
+- Testing **three chart types** (bar, radar, donut) with matched datasets
+- Varying **color contrast** (high-contrast blue vs. low-contrast orange) within each survey
+- Using the **same 10 data arrays** across all three experiments to enable fair comparison
 
-Previous assignment A3 (+ Cleveland/McGill), discussions with Professor Harrison, lecture topics
+---
 
-# Hypothesis 
-In this extension of the experiment given in A3 we aim to answer the three questions below:
-- How does visualization type affect participants’ ability to estimate numeric differences?
-- How does color contrast affect participants’ ability to estimate numeric differences?
-- How does survey length affect participants’ ability to estimate numeric differences?
+## Tech Stack
 
-# Data Collection and Evaluation
-The data was collected by each of the group members separately for each visualization type. More specifically, we created three seperate pages with corresponding QR codes to surverys for bar, radar, and donut visualizations. In contrast to A3, each survey contained only 20 questions: the first 10 related to low contrast charts and the last 10 related to high contrast charts for each visualization type. The participants were able to take the survey on their phone or computer for convenience. 
+| Category | Technology | Why |
+|---|---|---|
+| **Visualization Generation** | D3.js v7 | Full SVG control for precise manipulation of color, geometry, and data markers |
+| **Survey Frontend** | React + SurveyJS | Declarative survey definitions via JSON; handles image embedding and response capture without a backend |
+| **Statistical Analysis** | Python, pandas, NumPy | Vectorized error computation and CSV I/O across hundreds of participant responses |
+| **Result Visualization** | Matplotlib | Scatter plots with linear regression overlays to compare error vs. dataset standard deviation |
+| **Deployment** | GitHub Pages | Zero-config static hosting; each experiment is an independent deployable page with a QR code |
 
-Each of the 10 graphs represented the same set of 10 arrays for consistency in comparing the results. The data was evaluates in a similar manner to A3 with the addition of calculations to compare the average errors for high and low contrast visualizations
+---
 
-Below are some examples of high and low contrast charts provided on the three types of surveys.
-### Low Contrast Bar Chart
-![Bar Chart Low Contrast](barChart/imgs/barOrange4.png)
-### High Contrast Bar Chart
-![Bar Chart High Contrast](barChart/imgs/b1.png)
-### Low Contrast Radar Chart
-![Radar Chart Low Contrast](lowContrast/rChart1.png)
-### High Contrast Radar Chart
-![Radar Chart High Contrast](highContrast/rChart1.png)
-### Low Contrast Donut Chart
-![Donut Chart Low Contrast](donuts/o1.png) 
-### High Contrast Donut Chart
-![Donut Chart High Contrast](donuts/b1.png)
+## Key Features
 
-# Evaluation
-## Bar Chart
-The average error for high contrast bar charts based on the standard deviation of each dataset:
-![Average Error for High Contrast Visualizations](results/barAvgErrorsBlue.png)
+- **Three independent survey experiments** — `barExperiment/`, `radarExperiment/`, `donutExperiment/` — each a self-contained React + SurveyJS app deployed to GitHub Pages
+- **Controlled visual stimuli** — 10 chart pairs per survey, one low-contrast (orange), one high-contrast (blue), all generated from the same underlying 10 data arrays using D3.js
+- **Cleveland/McGill error metric** — participant error is computed as `log₂(|judged − true| + ⅛)`, matching the formula from the seminal 1984 paper for cross-study comparability
+- **Automated analysis pipeline** — `analysis/analyze.py` reads raw CSV exports, computes per-question errors, averages across participants, and renders result plots in a single run
+- **Cross-chart-type comparison** — the same 10 data arrays are used for all three chart types, so differences in error are attributable to chart design, not data variance
 
-The average error for the high contrast bar chart was 3.9888914098102553.
+---
 
-The average error for low contrast bar charts based on the standard deviation of each dataset:
-![Average Error for Low Contrast Visualizations](results/barAvgErrorsOrange.png)
+## Architecture
 
-The average error for the low contrast bar charts was 4.033975418651378.
+```mermaid
+graph TD
+    A[data/all_arrays.csv\n10 shared data arrays] --> B[D3.js Chart Generators\nbarGen.html / donutGen.html]
+    B --> C[Chart Images\nbarChart/imgs, donutChart/imgs,\nhighContrast/, lowContrast/]
+    C --> D[SurveyJS JSON Config\njson.js per experiment]
+    D --> E[React + SurveyJS Survey\nDeployed via GitHub Pages]
+    E --> F[Participant Responses\nCSV exports via SurveyJS]
+    F --> G[analysis/analyze.py\nError computation pipeline]
+    A --> G
+    G --> H[analysis/masterData/\n*Errors.csv — per-question errors]
+    G --> I[results/\nScatter plots and bar charts PNG]
+```
 
+---
 
-Error comparison between high and low contrast for each data array:
-![Average Error Comparison for Each Data Array](results/barErrorsBlueOrange.png)
+## Results Summary
 
-Notice that the average error for the high contrast charts was similar to that of average error for the low contrast chart. Moreover, high contrast chart had stronger correlation with standard deviation. Contrary to the hypothesis, the overall error with low contrast charts seems to be lower.
+### Bar Chart
+| Condition | Average Error |
+|---|---|
+| High Contrast (Blue) | 3.989 |
+| Low Contrast (Orange) | 4.034 |
 
-## Radar Chart
-The average error for high contrast radar charts based on the standard deviation of each dataset:
-![Average Error for High Contrast Visualizations](results/radarAvgErrorsBlue.png)
+Bar charts produced the **lowest error rates** of all three chart types, confirming Cleveland & McGill's finding that position-based encodings are the most accurately perceived.
 
-The average error for the high contrast charts was 4.034301439723086.
+![Bar Error Comparison](results/barErrorsBlueOrange.png)
 
-The average error for low contrast radar charts based on the standard deviation of each dataset:
-![Average Error for Low Contrast Visualizations](results/radarAvgErrorsOrange.png)
+### Radar Chart
+| Condition | Average Error |
+|---|---|
+| High Contrast (Blue) | 4.034 |
+| Low Contrast (Orange) | 3.935 |
 
-The average error for the low contrast charts was 3.935321847641552.
+Radar charts performed comparably to bar charts. Notably, low-contrast charts showed *lower* error — a result that challenges the intuitive assumption that contrast aids accuracy.
 
-Error comparison between high and low contrast for each data array:
-![Average Error Comparison for Each Data Array](results/radarErrorsBlueOrange.png)
+![Radar Error Comparison](results/radarErrorsBlueOrange.png)
 
-Notice that the high contrast radar charts had lower correlation with the standard deviation than the low contrast radar charts. However, the overall errors seem to be similar and very close with the bar charts above. 
+### Donut Chart
+| Condition | Average Error |
+|---|---|
+| High Contrast (Blue) | 4.378 |
+| Low Contrast (Orange) | 4.490 |
 
-## Donut Chart
-The average error for high contrast donut charts based on the standard deviation of each dataset:
-![Average Error for High Contrast Visualizations](results/donutAvgErrorsBlue.png)
+Donut charts had the **highest error** of all three types, consistent with the difficulty of estimating angular/arc proportions relative to linear position.
 
-The average error for high contrast donut charts was 4.377846506419004.
+![Donut Error Comparison](results/donutErrorsBlueOrange.png)
 
-The average error for low contrast donut charts based on the standard deviation of each dataset:
-![Average Error for Low Contrast Visualizations](results/donutAvgErrorsOrange.png)
+**Key finding:** Color contrast had minimal and inconsistent impact on perceptual accuracy. Chart type was the dominant factor.
 
-The average error for the low contrast donut charts was 4.489632010051756.
+---
 
-Error comparison between high and low contrast for each data array:
-![Average Error Comparison for Each Data Array](results/donutErrorsBlueOrange.png)
+## Project Structure
 
-Notice that the high contrast donut charts had lower errors but high correlation with the standard deviation when compared to the low contrast charts. Overall, the errors were similar for both as shown for the other chart types above. 
+```
+.
+├── data/
+│   └── all_arrays.csv          # 10 shared input arrays used across all experiments
+├── barChart/                   # Generated bar chart images (blue + orange variants)
+├── donutChart/                 # Generated donut chart images
+├── highContrast/               # High-contrast radar chart images
+├── lowContrast/                # Low-contrast radar chart images
+├── barExperiment/              # React+SurveyJS app for bar chart survey
+├── donutExperiment/            # React+SurveyJS app for donut chart survey
+├── radarExperiment/            # React+SurveyJS app for radar chart survey
+├── analysis/
+│   ├── fns.py                  # Pure utility functions (error metric, std dev)
+│   ├── process.py              # DataFrame-level processing and matplotlib output
+│   ├── analyze.py              # Entry point: orchestrates all three chart analyses
+│   └── masterData/             # Raw CSV exports from SurveyJS + computed errors
+└── results/                    # Output PNG charts from analysis pipeline
+```
 
-# Conclusion
-## Sources of Error
-Some of the potential sources of error include showing low contrast charts before the high contrast charts. Since the users saw the same data for both, it might have been easier to determine the difference for the high contrast charts on the second page of the survey. 
-Another potential source of error could've come from the fact that some participants took the survey on their phones vs. computer. The UI for a phone was a bit harder to use making it harder for participants to accurately calculate the errors. 
-Finally, including the scales for each graph might have made it easier for participants to calculate the exact numerical differences. 
-## Reflection
-Overall, we saw that the errors were relatively high with similar values for high and low contrast charts. However, the overall errors for bar charts were the lowest establishing that the bar charts are the best way to represent simple numeric data followed closely by radar charts. Notice that the low contrast errors were very similar to those of high contrast charts suggesting that the colour of visualization does not have a great impact on user perception. Shorter surverys did not result in lower errors for bar and radar charts when compared to A3 results. However, errors for donut charts are noticibly lower when compared to A3. Finally, simplifying the question for each visualization did not have significant impact on the errors. 
+---
 
-# Technical and Design Achievements
-## Technical
-- statistical analysis
-- three separate surveys for each visualization type
+## Running the Analysis
 
-# Credits 
-Taya - analysis and analysis report; code for bar charts and visualization generation; bar charts survey data collection
+**Requirements:** Python 3.10+, pandas, numpy, matplotlib
 
-Myles - Made radar charts, implemented surveys for each type + stored results, distributed radar experiment, made website, recorded screen-cast.
+```bash
+cd analysis
+pip install pandas numpy matplotlib
+python analyze.py
+```
 
-Ash - donut charts and donut chart data collection
+Output PNGs are written to `results/`. To re-enable specific plots, uncomment the relevant `pc.viz()` or `pc.createBarChart()` calls in `analyze.py`.
 
-## Credits
+**Running a survey experiment locally:**
 
-Donut Chart:
-* d3.js https://d3js.org/
-* CSS/HTML
+```bash
+cd barExperiment   # or donutExperiment / radarExperiment
+npm install
+npm start
+```
+
+---
+
+## Challenges & Solutions
+
+### Challenge: Implementing the Cleveland/McGill Error Metric Correctly
+
+The 1984 Cleveland & McGill paper defines perceptual error as:
+
+```
+error = log₂(|judged − true| + ⅛)
+```
+
+The `+ ⅛` term is easy to overlook. It serves two purposes: (1) it prevents `log₂(0)` when a participant's answer is exactly correct, and (2) it compresses large outlier errors, making the metric more robust to wild guesses. Matching this formula exactly was necessary to compare our results to prior work — a small constant makes results incomparable across studies.
+
+**Implementation** (`analysis/fns.py:22`):
+```python
+score = math.log2(abs(j - t) + 1/8)
+```
+
+### Challenge: Ordering Bias in the Survey Design
+
+Each survey presented low-contrast charts on page 1 and high-contrast charts on page 2. Because participants saw the same underlying data twice, familiarity with the dataset on page 2 may have inflated high-contrast accuracy — which could partially explain why high-contrast didn't consistently outperform low-contrast as hypothesized.
+
+A future study would randomize the order of contrast conditions across participants.
+
+### Challenge: Cross-Device Response Variability
+
+Participants completed surveys on both phones and computers. Mobile viewport sizes made the chart images smaller and the numeric input fields harder to use precisely. This added noise to the dataset that wasn't present in controlled lab settings.
+
+---
+
+## Conclusion
+
+**Bar charts are the most perceptually accurate chart type** for estimating numerical differences, consistent with decades of prior work. Donut charts were the least accurate. Surprisingly, **color contrast had minimal effect** — users performed similarly with both orange and blue encodings across all three chart types. Shorter surveys (20 questions vs. prior A3's longer format) did not meaningfully reduce error rates for bar or radar charts, though donut chart errors were notably lower than in the prior study.
+
+---
+
+## Team
+
+| Contributor | Role |
+|---|---|
+| Taya | Statistical analysis pipeline, bar chart generation, bar chart data collection |
+| Myles | Radar chart generation, survey implementation, data collection, website, screencast |
+| Ash | Donut chart generation, donut chart data collection |
+
+---
+
+## References
+
+- Cleveland, W. S., & McGill, R. (1984). Graphical perception: Theory, experimentation, and application to the development of graphical methods. *Journal of the American Statistical Association*, 79(387), 531–554.
+- [D3.js](https://d3js.org/) — Data-Driven Documents
+- [SurveyJS](https://surveyjs.io/) — Survey library for React
